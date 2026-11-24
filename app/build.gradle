@@ -1,0 +1,47 @@
+plugins { id 'com.android.application' }
+
+def ksFile = rootProject.file('keystore.properties')
+def ks = new Properties()
+if (ksFile.exists()) ksFile.withInputStream { ks.load(it) }
+
+android {
+    namespace 'com.renzo.idscanner'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.renzo.idscanner'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    if (ksFile.exists()) {
+        signingConfigs {
+            release {
+                storeFile rootProject.file(ks['storeFile'])
+                storePassword ks['storePassword']
+                keyAlias ks['keyAlias']
+                keyPassword ks['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Personal keystore if provided; otherwise the standard Android DEBUG key (TEST BUILD ONLY).
+            signingConfig ksFile.exists() ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    dependenciesInfo { includeInApk = false; includeInBundle = false }
+    lint { abortOnError false }
+}
+// No dependencies: platform SDK only.
